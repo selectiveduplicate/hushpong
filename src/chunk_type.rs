@@ -1,3 +1,7 @@
+use std::fmt::Error;
+
+use crate::errors;
+
 #[derive(PartialEq, Eq)]
 pub struct ChunkType(pub [u8; 4]);
 
@@ -7,11 +11,11 @@ impl ChunkType {
     }
 }
 impl TryFrom<[u8; 4]> for ChunkType {
-    type Error =  &'static str;
+    type Error = errors::Errors;
 
     fn try_from(value: [u8; 4]) -> Result<Self, Self::Error> {
         if !value.is_ascii() {
-            Err("chunk type code must be uppercase and lowercase ASCII letters")
+            Err(Self::Error::NonAsciiLetterInChunkType)
         } else {
             Ok(Self(value))
         }
