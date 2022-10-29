@@ -21,6 +21,12 @@ impl ChunkType {
         // 0 (uppercase) = critical, 1 (lowercase) = ancillary
         bits & (1 << 5) == 0
     }
+
+    /// Checks if chunk is a public chunk.
+    fn is_public(&self) -> bool {
+        let bits = self.0[1];
+        bits & (1 << 5) == 0
+    }
 }
 
 impl TryFrom<[u8; 4]> for ChunkType {
@@ -85,5 +91,17 @@ mod chunktype_tests {
     pub fn test_chunk_type_is_not_critical() {
         let chunk = ChunkType::from_str("ruSt").unwrap();
         assert!(!chunk.is_critical());
+    }
+
+    #[test]
+    pub fn test_chunk_type_is_public() {
+        let chunk = ChunkType::from_str("RUSt").unwrap();
+        assert!(chunk.is_public());
+    }
+
+    #[test]
+    pub fn test_chunk_type_is_not_public() {
+        let chunk = ChunkType::from_str("RuSt").unwrap();
+        assert!(!chunk.is_public());
     }
 }
