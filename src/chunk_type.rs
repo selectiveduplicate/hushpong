@@ -46,7 +46,7 @@ impl TryFrom<[u8; 4]> for ChunkType {
 
     fn try_from(value: [u8; 4]) -> Result<Self, Self::Error> {
         if value.iter().any(|byte| !byte.is_ascii_alphabetic()) {
-            Err(Self::Error::NonAlphabeticAscii)
+            Err(Self::Error::InvalidByteError)
         } else {
             Ok(Self(value))
         }
@@ -65,8 +65,8 @@ impl FromStr for ChunkType {
     type Err = ChunkTypeErrors;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        if s.chars().any(|ch| !ch.is_ascii_alphabetic()) {
-            Err(Self::Err::NonAlphabeticAscii)
+        if s.chars().any(|ch| !ch.is_ascii() || !ch.is_ascii_alphabetic()) {
+            Err(Self::Err::InvalidByteError)
         } else {
             let byte: [u8; 4] = s.as_bytes().try_into()?;
             Self::try_from(byte)
@@ -153,5 +153,16 @@ mod chunktype_tests {
     pub fn test_chunk_type_string() {
         let chunk = ChunkType::from_str("bLOb").unwrap();
         assert_eq!(chunk.to_string(), "bLOb");
+    }
+
+    #[test]
+    pub fn test_chunk_type_trait_impls() {
+        let chunk_type_1: ChunkType = TryFrom::try_from([82, 117, 83, 116]).unwrap();
+        let chunk_type_2: ChunkType = FromStr::from_str("RuSt").unwrap();
+        let chunk_to_string = format!("{}", chunk_type_1);
+        let are_chunks_equal = chunk_type_1 == chunk_type_2;
+
+        assert_eq!(chunk_to_string, String::from("RuSt"));
+        assert_eq!(are_chunks_equal, true);
     }
 }
