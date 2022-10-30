@@ -1,4 +1,4 @@
-use std::{error, str::FromStr};
+use std::str::FromStr;
 
 mod args;
 mod chunk;

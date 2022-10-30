@@ -4,7 +4,9 @@ use thiserror::Error;
 
 #[derive(Error, Debug)]
 pub enum ChunkTypeErrors {
-    #[error("chunk type code must be valid uppercase and lowercase ASCII letters ('A'-'Z' and 'a'-'z')")]
+    #[error(
+        "chunk type code must be valid uppercase and lowercase ASCII letters ('A'-'Z' and 'a'-'z')"
+    )]
     NonAlphabeticAscii,
     #[error("chunk type code must 4-bytes in length")]
     ByteParseError,

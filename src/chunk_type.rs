@@ -1,7 +1,6 @@
 use crate::errors::ChunkTypeErrors;
+use std::fmt::Display;
 use std::str::FromStr;
-
-use crate::errors;
 
 #[derive(Debug, PartialEq, Eq)]
 /// The 4-byte chunk type code of a PNG file.
@@ -17,7 +16,7 @@ impl ChunkType {
     pub fn is_critical(&self) -> bool {
         // Get the first byte
         let bits = self.0[0];
-        // Check if bit 5 is 0 or 1 
+        // Check if bit 5 is 0 or 1
         // 0 (uppercase) = critical, 1 (lowercase) = ancillary
         bits & (1 << 5) == 0u8
     }
@@ -34,7 +33,7 @@ impl ChunkType {
         bits & (1 << 5) == 0u8
     }
 
-    /// Checks the chunk's safe-to-copy bit by examining 
+    /// Checks the chunk's safe-to-copy bit by examining
     /// bit 5 of the fourth byte.
     pub fn is_safe_to_copy(&self) -> bool {
         let bits = self.0[3];
@@ -51,6 +50,14 @@ impl TryFrom<[u8; 4]> for ChunkType {
         } else {
             Ok(Self(value))
         }
+    }
+}
+
+impl Display for ChunkType {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        self.0
+            .into_iter()
+            .try_for_each(|byte| write!(f, "{}", byte as char))
     }
 }
 
@@ -87,7 +94,7 @@ mod chunktype_tests {
         let actual = ChunkType::from_str("RuSt").unwrap();
         assert_eq!(expected, actual);
     }
-    
+
     #[test]
     pub fn test_chunk_type_from_bytes_containing_asciialphabetic() {
         let actual = ChunkType::try_from([82, 117, 36, 116]);
@@ -140,5 +147,11 @@ mod chunktype_tests {
     pub fn test_chunk_type_is_unsafe_to_copy() {
         let chunk = ChunkType::from_str("RuST").unwrap();
         assert!(!chunk.is_safe_to_copy());
+    }
+
+    #[test]
+    pub fn test_chunk_type_string() {
+        let chunk = ChunkType::from_str("bLOb").unwrap();
+        assert_eq!(chunk.to_string(), "bLOb");
     }
 }
