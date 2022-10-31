@@ -32,6 +32,16 @@ impl ChunkType {
     pub fn is_safe_to_copy(&self) -> bool {
         self.0[3].is_ascii_lowercase()
     }
+
+    /// Returns `true` if the reserved bit is valid and all four bytes are 
+    /// uppercase or lowercase ASCII letters
+    pub fn is_valid(&self) -> bool {
+        if !self.is_reserved_bit_valid() {
+            return false;
+        }
+        !self.0.into_iter().any(|byte| !byte.is_ascii_alphabetic())
+       
+    }
 }
 
 impl TryFrom<[u8; 4]> for ChunkType {
@@ -157,5 +167,20 @@ mod chunktype_tests {
 
         assert_eq!(chunk_to_string, String::from("RuSt"));
         assert_eq!(are_chunks_equal, true);
+    }
+
+    #[test]
+    pub fn test_valid_chunk_is_valid() {
+        let chunk = ChunkType::from_str("RuSt").unwrap();
+        assert!(chunk.is_valid());
+    }
+
+    #[test]
+    pub fn test_invalid_chunk_is_valid() {
+        let chunk = ChunkType::from_str("Rust").unwrap();
+        assert!(!chunk.is_valid());
+
+        let chunk = ChunkType::from_str("Ru1t");
+        assert!(chunk.is_err());
     }
 }
