@@ -14,30 +14,23 @@ impl ChunkType {
 
     /// Checks if the chunk is critical by examining bit 5 of the first byte.
     pub fn is_critical(&self) -> bool {
-        // Get the first byte
-        let bits = self.0[0];
-        // Check if bit 5 is 0 or 1
-        // 0 (uppercase) = critical, 1 (lowercase) = ancillary
-        bits & (1 << 5) == 0u8
+        self.0[0].is_ascii_uppercase()
     }
 
     /// Checks if chunk is a public chunk by examining bit 5 of the second byte.
     pub fn is_public(&self) -> bool {
-        let bits = self.0[1];
-        bits & (1 << 5) == 0u8
+        self.0[1].is_ascii_uppercase()
     }
 
     /// Checks for reserved bit in chunk by examining bit 5 of the third byte.
     pub fn is_reserved_bit_valid(&self) -> bool {
-        let bits = self.0[2];
-        bits & (1 << 5) == 0u8
+        self.0[2].is_ascii_uppercase()
     }
 
     /// Checks the chunk's safe-to-copy bit by examining
     /// bit 5 of the fourth byte.
     pub fn is_safe_to_copy(&self) -> bool {
-        let bits = self.0[3];
-        (bits & (1 << 5)) > 0u8
+        self.0[3].is_ascii_lowercase()
     }
 }
 
