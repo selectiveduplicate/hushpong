@@ -33,14 +33,13 @@ impl ChunkType {
         self.0[3].is_ascii_lowercase()
     }
 
-    /// Returns `true` if the reserved bit is valid and all four bytes are 
+    /// Returns `true` if the reserved bit is valid and all four bytes are
     /// uppercase or lowercase ASCII letters
     pub fn is_valid(&self) -> bool {
         if !self.is_reserved_bit_valid() {
             return false;
         }
         !self.0.into_iter().any(|byte| !byte.is_ascii_alphabetic())
-       
     }
 }
 
@@ -68,7 +67,9 @@ impl FromStr for ChunkType {
     type Err = ChunkTypeErrors;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        if s.chars().any(|ch| !ch.is_ascii() || !ch.is_ascii_alphabetic()) {
+        if s.chars()
+            .any(|ch| !ch.is_ascii() || !ch.is_ascii_alphabetic())
+        {
             Err(Self::Err::InvalidByteError)
         } else {
             let byte: [u8; 4] = s.as_bytes().try_into()?;

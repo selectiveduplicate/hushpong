@@ -12,7 +12,7 @@ pub type Result<T> = std::result::Result<T, errors::ChunkTypeErrors>;
 fn main() -> Result<()> {
     let ct = chunk_type::ChunkType::from_str("Ru$t");
     if let Err(e) = ct {
-        eprintln!("{e}"); 
+        eprintln!("{e}");
     }
     Ok(())
 }
