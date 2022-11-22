@@ -3,7 +3,7 @@ use std::array::TryFromSliceError;
 use thiserror::Error;
 
 #[derive(Error, Debug)]
-pub enum ChunkTypeErrors {
+pub enum ChunkErrors {
     #[error(
         "error: chunk type code must be valid uppercase or lowercase ASCII letters ('A'-'Z' and 'a'-'z')"
     )]

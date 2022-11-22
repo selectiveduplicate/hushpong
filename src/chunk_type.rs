@@ -1,4 +1,4 @@
-use crate::errors::ChunkTypeErrors;
+use crate::errors::ChunkErrors;
 use std::fmt::Display;
 use std::str::FromStr;
 
@@ -44,7 +44,7 @@ impl ChunkType {
 }
 
 impl TryFrom<[u8; 4]> for ChunkType {
-    type Error = ChunkTypeErrors;
+    type Error = ChunkErrors;
 
     fn try_from(value: [u8; 4]) -> Result<Self, Self::Error> {
         if value.iter().any(|byte| !byte.is_ascii_alphabetic()) {
@@ -64,7 +64,7 @@ impl Display for ChunkType {
 }
 
 impl FromStr for ChunkType {
-    type Err = ChunkTypeErrors;
+    type Err = ChunkErrors;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         if s.chars()

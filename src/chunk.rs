@@ -1,7 +1,10 @@
-use crate::{chunk_type::{ChunkType, self}, chunk};
+use crate::{
+    chunk,
+    chunk_type::{self, ChunkType},
+};
 use crc::CRC_32_ISO_HDLC;
 
-use crate::errors::ChunkTypeErrors;
+use crate::errors::ChunkErrors;
 
 /// A chunk of a PNG file.
 /// Each chunk consits of four parts: length, chunk type, chunk data, and CRC
@@ -28,14 +31,11 @@ pub struct Chunk {
 }
 
 impl Chunk {
-    /// Creates a new Chunk with the specified chunk type 
+    /// Creates a new Chunk with the specified chunk type
     /// and chunk data.
     pub fn new(chunk_type: ChunkType, data: Vec<u8>) -> Self {
         let crc = crc::Crc::<u32>::new(&CRC_32_ISO_HDLC)
             .checksum(&[chunk_type.bytes().as_slice(), data.as_slice()].concat());
-
-        let data_lenth = data.len();
-        println!("Data length is: {data_lenth}");
 
         Self {
             length: data.len() as u32,
@@ -57,21 +57,26 @@ impl Chunk {
 }
 
 impl TryFrom<&[u8]> for Chunk {
-    type Error = ChunkTypeErrors;
+    type Error = ChunkErrors;
 
+    /// Tries to produces a valid `Chunk` from a slice of bytes.
+    // The `value` contains the 4-byte data length type, 
+    // the 4-byte chunk type,
+    // the unspecified amount of chunk data, and 
+    // the 4-byte CRC that's calculated based on the chunk 
+    // type and chunk data.
     fn try_from(value: &[u8]) -> Result<Self, Self::Error> {
+        // The first 4 bytes is the chunk length field.
         let mut chunked_chunk = value.chunks(4);
-        
         let data_length = chunked_chunk.next().unwrap().len();
 
-        let chunk_type_byte_slice: [u8; 4] = chunked_chunk.next().unwrap().try_into()?;
-        let chunk_type = TryFrom::try_from(chunk_type_byte_slice)?;
+        // The next 4 byte is the chunk type
+        let chunk_type_as_byte_slice: [u8; 4] = chunked_chunk.next().unwrap().try_into()?;
+        let chunk_type = TryFrom::try_from(chunk_type_as_byte_slice)?;
 
-        let mut right_chunked_chunk = value.rchunks(4);
-
-        let _crc = right_chunked_chunk.next();
-        
-        let chunk_data: Vec<u8> = value[data_length+4..value.len()-4].iter().copied().collect();
+        // The chunk data should be what's left in `value` after we disregard 
+        // the 4-byte data length, the 4-byte chunk type, and the 4-byte CRC.
+        let chunk_data: Vec<u8> = value[data_length + 4..value.len() - 4].to_vec();
 
         let new_chunk = Self::new(chunk_type, chunk_data);
 
@@ -88,20 +93,20 @@ mod chunk_tests {
     #[test]
     fn test_new_chunk() {
         let chunk_type = ChunkType::from_str("RuSt").unwrap();
-        let data = "This is where your secret message will be!"
+        let data = "My life is like an eternal night..."
             .as_bytes()
             .to_vec();
         let chunk = Chunk::new(chunk_type, data);
-        assert_eq!(chunk.length(), 42);
-        assert_eq!(chunk.crc(), 2882656334);
+        assert_eq!(chunk.length(), 35);
+        assert_eq!(chunk.crc(), 2591807180);
     }
 
     #[test]
     pub fn test_chunk_trait_impls() {
-        let data_length: u32 = 42;
+        let data_length: u32 = 35;
         let chunk_type = "RuSt".as_bytes();
-        let message_bytes = "This is where your secret message will be!".as_bytes();
-        let crc: u32 = 2882656334;
+        let message_bytes = "My life is like an eternal night...".as_bytes();
+        let crc: u32 = 2591807180;
 
         let chunk_data: Vec<u8> = data_length
             .to_be_bytes()
@@ -111,11 +116,31 @@ mod chunk_tests {
             .chain(crc.to_be_bytes().iter())
             .copied()
             .collect();
-        
+
         let chunk: Chunk = TryFrom::try_from(chunk_data.as_ref()).unwrap();
 
-        assert_eq!(chunk.length(), 42);
-        assert_eq!(chunk.crc(), 2882656334);
+        assert_eq!(chunk.length(), 35);
+        assert_eq!(chunk.crc(), 2591807180);
     }
 
+    #[test]
+    pub fn test_chunk_with_invalid_chunk_type() {
+        let data_length: u32 = 35;
+        let chunk_type = "Ru$t".as_bytes();
+        let message_bytes = "My life is like an eternal night...".as_bytes();
+        let crc: u32 = 2591807180;
+
+        let chunk_data: Vec<u8> = data_length
+            .to_be_bytes()
+            .iter()
+            .chain(chunk_type.iter())
+            .chain(message_bytes.iter())
+            .chain(crc.to_be_bytes().iter())
+            .copied()
+            .collect();
+
+        let chunk = Chunk::try_from(chunk_data.as_ref());
+        assert!(chunk.is_err());
+        assert!(matches!(chunk, Err(ChunkErrors::InvalidByteError)));
+    }
 }
