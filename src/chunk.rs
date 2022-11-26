@@ -158,4 +158,10 @@ mod chunk_tests {
         let chunk_type = chunk.chunk_type().to_string();
         assert_eq!(chunk_type, String::from("RuSt"));
     }
+
+    #[test]
+    fn test_chunk_length() {
+        let chunk = chunk_test_input();
+        assert_eq!(chunk.length(), 35);
+    }
 }
