@@ -54,6 +54,11 @@ impl Chunk {
     pub fn length(&self) -> u32 {
         self.length
     }
+
+    /// Returns a reference to the `ChunkType` of the `Chunk`.
+    pub fn chunk_type(&self) -> &ChunkType {
+        &self.chunk_type
+    }
 }
 
 impl TryFrom<&[u8]> for Chunk {
@@ -145,5 +150,12 @@ mod chunk_tests {
         let chunk = Chunk::try_from(chunk_data.as_ref());
         assert!(chunk.is_err());
         assert!(matches!(chunk, Err(ChunkErrors::InvalidByteError)));
+    }
+
+    #[test]
+    fn test_chunk_type_of_chunk() {
+        let chunk = chunk_test_input();
+        let chunk_type = chunk.chunk_type().to_string();
+        assert_eq!(chunk_type, String::from("RuSt"));
     }
 }
