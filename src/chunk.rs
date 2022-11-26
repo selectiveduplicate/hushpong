@@ -1,3 +1,5 @@
+use std::io::Read;
+
 use crate::{
     chunk,
     chunk_type::{self, ChunkType},
@@ -58,6 +60,12 @@ impl Chunk {
     /// Returns a reference to the `ChunkType` of the `Chunk`.
     pub fn chunk_type(&self) -> &ChunkType {
         &self.chunk_type
+    }
+
+    /// Returns the `Chunk`s data as a string
+    pub fn data_as_string(&self) -> Result<String, ChunkErrors> {
+        let stringified_data = String::from_utf8(self.chunk_data.clone())?;
+        Ok(stringified_data)
     }
 }
 
@@ -163,5 +171,13 @@ mod chunk_tests {
     fn test_chunk_length() {
         let chunk = chunk_test_input();
         assert_eq!(chunk.length(), 35);
+    }
+
+    #[test]
+    fn test_chunk_string() {
+        let chunk = chunk_test_input();
+        let chunk_string = chunk.data_as_string().unwrap();
+        let expected_chunk_string = String::from("My life is like an eternal night...");
+        assert_eq!(chunk_string, expected_chunk_string);
     }
 }
