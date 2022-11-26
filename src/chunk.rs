@@ -90,19 +90,7 @@ mod chunk_tests {
     use crate::chunk_type::ChunkType;
     use std::str::FromStr;
 
-    #[test]
-    fn test_new_chunk() {
-        let chunk_type = ChunkType::from_str("RuSt").unwrap();
-        let data = "My life is like an eternal night..."
-            .as_bytes()
-            .to_vec();
-        let chunk = Chunk::new(chunk_type, data);
-        assert_eq!(chunk.length(), 35);
-        assert_eq!(chunk.crc(), 2591807180);
-    }
-
-    #[test]
-    pub fn test_chunk_trait_impls() {
+    fn chunk_test_input() -> Chunk {
         let data_length: u32 = 35;
         let chunk_type = "RuSt".as_bytes();
         let message_bytes = "My life is like an eternal night...".as_bytes();
@@ -116,8 +104,23 @@ mod chunk_tests {
             .chain(crc.to_be_bytes().iter())
             .copied()
             .collect();
+        Chunk::try_from(chunk_data.as_ref()).unwrap()
+    }
 
-        let chunk: Chunk = TryFrom::try_from(chunk_data.as_ref()).unwrap();
+    #[test]
+    fn test_new_chunk() {
+        let chunk_type = ChunkType::from_str("RuSt").unwrap();
+        let data = "My life is like an eternal night..."
+            .as_bytes()
+            .to_vec();
+        let chunk = Chunk::new(chunk_type, data);
+        assert_eq!(chunk.length(), 35);
+        assert_eq!(chunk.crc(), 2591807180);
+    }
+
+    #[test]
+    pub fn test_chunk_trait_impls() {
+        let chunk: Chunk = chunk_test_input();
 
         assert_eq!(chunk.length(), 35);
         assert_eq!(chunk.crc(), 2591807180);
