@@ -15,9 +15,3 @@ pub enum ChunkErrors {
     #[error("error occurred while interpreting string from chunk data: {}", .0.utf8_error())]
     StringFromUtf8Error(#[from] FromUtf8Error)
 }
-
-//impl From<FromUtf8Error> for ChunkErrors {
-//    fn from(err: FromUtf8Error) -> Self {
-//        ChunkErrors::StringFromUtf8Error(err)
-//    }
-//}
