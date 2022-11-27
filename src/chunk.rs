@@ -180,4 +180,10 @@ mod chunk_tests {
         let expected_chunk_string = String::from("My life is like an eternal night...");
         assert_eq!(chunk_string, expected_chunk_string);
     }
+
+    #[test]
+    fn test_chunk_crc() {
+        let chunk = chunk_test_input();
+        assert_eq!(chunk.crc(), 2591807180);
+    }
 }
