@@ -132,14 +132,6 @@ mod chunk_tests {
     }
 
     #[test]
-    pub fn test_chunk_trait_impls() {
-        let chunk: Chunk = chunk_test_input();
-
-        assert_eq!(chunk.length(), 35);
-        assert_eq!(chunk.crc(), 2591807180);
-    }
-
-    #[test]
     pub fn test_chunk_with_invalid_chunk_type() {
         let data_length: u32 = 35;
         let chunk_type = "Ru$t".as_bytes();
