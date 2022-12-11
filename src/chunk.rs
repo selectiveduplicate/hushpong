@@ -99,16 +99,12 @@ impl TryFrom<&[u8]> for Chunk {
         let actual_crc = crc::Crc::<u32>::new(&CRC_32_ISO_HDLC)
             .checksum(&[chunk_type.bytes().as_slice(), chunk_data.as_slice()].concat());
 
-        if received_crc != actual_crc {
-            return Err(Self::Error::InvalidCrc(Expectations {
+        (received_crc == actual_crc)
+            .then_some(Self::new(chunk_type, chunk_data))
+            .ok_or(Self::Error::InvalidCrc(Expectations {
                 got: received_crc,
                 expected: actual_crc,
-            }));
-        }
-
-        let new_chunk = Self::new(chunk_type, chunk_data);
-
-        Ok(new_chunk)
+            }))
     }
 }
 
