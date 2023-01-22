@@ -1,6 +1,3 @@
-use crc::CRC_32_ISO_HDLC;
-use std::str::FromStr;
-
 mod args;
 mod chunk;
 mod chunk_type;

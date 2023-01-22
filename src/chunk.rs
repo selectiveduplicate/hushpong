@@ -64,6 +64,20 @@ impl Chunk {
         let stringified_data = String::from_utf8(self.chunk_data.clone())?;
         Ok(stringified_data)
     }
+
+    /// Returns the `Chunk` as a vector of bytes.
+    pub(crate) fn as_bytes(&self) -> Vec<u8> {
+        let chunk_bytes: Vec<u8> = self
+            .length()
+            .to_be_bytes()
+            .iter()
+            .chain(self.chunk_type().bytes().iter())
+            .chain(self.chunk_data.iter())
+            .chain(self.crc().to_be_bytes().iter())
+            .copied()
+            .collect();
+        chunk_bytes
+    }
 }
 
 impl TryFrom<&[u8]> for Chunk {
@@ -207,5 +221,31 @@ mod chunk_tests {
         let chunk = Chunk::try_from(chunk_data.as_ref());
         assert!(chunk.is_err());
         assert!(matches!(chunk, Err(PngError::InvalidCrc(_))));
+    }
+
+    #[test]
+    pub(crate) fn test_chunk_as_bytes() {
+        let chunk = chunk_test_input();
+        let chunk_bytes_received = chunk.as_bytes();
+
+        let data_length: u32 = 35;
+        let crc: u32 = 2591807180;
+        let chunk_type = ChunkType::from_str("RuSt").unwrap();
+        let data: Vec<u8> = "My life is like an eternal night..."
+            .as_bytes()
+            .into_iter()
+            .copied()
+            .collect();
+
+        let chunk_bytes_expected: Vec<u8> = data_length
+            .to_be_bytes()
+            .iter()
+            .chain(chunk_type.bytes().iter())
+            .chain(data.iter())
+            .chain(crc.to_be_bytes().iter())
+            .copied()
+            .collect();
+
+        assert_eq!(chunk_bytes_expected, chunk_bytes_received);
     }
 }

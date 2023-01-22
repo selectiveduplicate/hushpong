@@ -1,8 +1,15 @@
 use crate::chunk::Chunk;
 
+/// A PNG file.
+///
+/// A PNG file consists of a PNG signature followed by a series of chunks.
+/// The PNG signature always consists of the following eight bytes (in decimal):
+/// `[137, 80, 78, 71, 13, 10, 26, 10]`
+///
+///
 pub(crate) struct Png {
     signature: [u8; 8],
-    chunks: Vec<Chunk>
+    chunks: Vec<Chunk>,
 }
 
 impl Png {
@@ -22,12 +29,13 @@ impl Png {
     }
 }
 
+#[cfg(test)]
 mod pngtests {
     use std::str::FromStr;
 
     use super::*;
-    use crate::{chunk::Chunk, chunk_type::{self, ChunkType}};
     use crate::errors::PngError;
+    use crate::{chunk::Chunk, chunk_type::ChunkType};
 
     fn chunks() -> Vec<Chunk> {
         let mut chunks = Vec::new();
