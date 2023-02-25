@@ -37,7 +37,7 @@ mod pngtests {
     use crate::errors::PngError;
     use crate::{chunk::Chunk, chunk_type::ChunkType};
 
-    fn chunks() -> Vec<Chunk> {
+    fn get_testing_chunks() -> Vec<Chunk> {
         let mut chunks = Vec::new();
 
         chunks.push(get_chunk_from_strings("RuSt", "I don't know what I'm doing").unwrap());
@@ -55,13 +55,21 @@ mod pngtests {
     }
 
     fn get_png_from_chunks() -> Png {
-        let chunks = chunks();
+        let chunks = get_testing_chunks();
         Png::from_chunks(chunks)
     }
 
     #[test]
     fn test_chunks_of_png() {
         let png = get_png_from_chunks();
+        assert_eq!(png.chunks().len(), 3);
+    }
+
+    #[test]
+    fn test_from_chunks() {
+        let chunks = get_testing_chunks();
+        let png = Png::from_chunks(chunks);
+
         assert_eq!(png.chunks().len(), 3);
     }
 }
