@@ -35,24 +35,20 @@ impl Png {
 impl TryFrom<&[u8]> for Png {
     type Error = PngError;
     fn try_from(value: &[u8]) -> Result<Self, Self::Error> {
-        // First take the signature in a buffer
-        let mut sig_buffer: [u8; 8] = [0; 8];
-        let mut byte_reader = BufReader::new(value);
-        byte_reader.read_exact(&mut sig_buffer)?;
-
-        // The chunks start from the 8th byte of `value` after 
+        // First take the signature.
+        let signature: [u8; 8]= value[..8].try_into()?;
+        // The chunks start from the 8th byte of `value` after
         // taking into account the signature.
         let mut starting_cursor = 8;
         let mut chunks = Vec::<Chunk>::new();
-        let mut end_cursor: usize = 0;
+        let mut end_cursor: usize;
 
         // While the end cursor doesn't reach the length of the slice.
         while starting_cursor < value.len() {
-            // Take the `length` field of `Chunk` into a buffer.
-            let mut chunk_length_buffer: [u8; 4] = [0; 4];
-            let mut chunk_length_reader = BufReader::new(&value[starting_cursor..]);
-            chunk_length_reader.read_exact(&mut chunk_length_buffer)?;
-            let chunk_length = u32::from_be_bytes(chunk_length_buffer) as usize;
+            // Get the `length` field of the `Chunk`.
+            let chunk_length_bytes: [u8; 4] =
+                value[starting_cursor..starting_cursor + 4].try_into()?;
+            let chunk_length = u32::from_be_bytes(chunk_length_bytes) as usize;
 
             // We can now get upto which byte the current chunk exists.
             end_cursor = Self::MIN_CHUNK_LENGTH + chunk_length + starting_cursor;
@@ -64,7 +60,7 @@ impl TryFrom<&[u8]> for Png {
         }
 
         Ok(Self {
-            signature: sig_buffer,
+            signature,
             chunks,
         })
     }
