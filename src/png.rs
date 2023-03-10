@@ -1,5 +1,3 @@
-use std::io::{BufReader, Read};
-
 use crate::{chunk::Chunk, errors::PngError};
 
 /// A PNG file.
@@ -65,7 +63,6 @@ impl TryFrom<&[u8]> for Png {
 
 #[cfg(test)]
 mod pngtests {
-    use std::io::Read;
     use std::str::FromStr;
 
     use super::*;
