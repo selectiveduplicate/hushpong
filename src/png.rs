@@ -36,7 +36,7 @@ impl TryFrom<&[u8]> for Png {
     type Error = PngError;
     fn try_from(value: &[u8]) -> Result<Self, Self::Error> {
         // First take the signature.
-        let signature: [u8; 8]= value[..8].try_into()?;
+        let signature: [u8; 8] = value[..8].try_into()?;
         // The chunks start from the 8th byte of `value` after
         // taking into account the signature.
         let mut starting_cursor = 8;
@@ -59,10 +59,7 @@ impl TryFrom<&[u8]> for Png {
             starting_cursor = end_cursor;
         }
 
-        Ok(Self {
-            signature,
-            chunks,
-        })
+        Ok(Self { signature, chunks })
     }
 }
 
@@ -76,17 +73,18 @@ mod pngtests {
     use crate::{chunk::Chunk, chunk_type::ChunkType};
 
     fn get_testing_chunks() -> Vec<Chunk> {
-        let mut chunks = Vec::new();
+        let chunks = vec![
+            get_chunk_from_strings("RuSt", "I don't know what I'm doing").unwrap(),
+            get_chunk_from_strings("TeAr", "Yes I'm crying").unwrap(),
+            get_chunk_from_strings("RaGe", "Nooooooo").unwrap(),
+        ];
 
-        chunks.push(get_chunk_from_strings("RuSt", "I don't know what I'm doing").unwrap());
-        chunks.push(get_chunk_from_strings("TeAr", "Yes I'm crying").unwrap());
-        chunks.push(get_chunk_from_strings("RaGe", "Nooooooo").unwrap());
         chunks
     }
 
     fn get_chunk_from_strings(chunk_type: &str, data: &str) -> Result<Chunk, PngError> {
         let chunk_type = ChunkType::from_str(chunk_type)?;
-        let chunk_data = data.as_bytes().iter().copied().collect::<Vec<u8>>();
+        let chunk_data = data.as_bytes().to_vec();
         let chunk = Chunk::new(chunk_type, chunk_data);
 
         Ok(chunk)
