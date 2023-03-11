@@ -155,7 +155,7 @@ mod chunk_tests {
     }
 
     #[test]
-    pub(crate) fn test_chunk_with_invalid_chunk_type() {
+    fn test_chunk_with_invalid_chunk_type() {
         let data_length: u32 = 35;
         let chunk_type = "Ru$t".as_bytes();
         let message_bytes = "My life is like an eternal night...".as_bytes();

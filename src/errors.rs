@@ -24,4 +24,6 @@ pub(crate) enum PngError {
     TryUsizeFromU32(#[from] TryFromIntError),
     #[error("error: invalid CRC {}, expected {}", .0.got, .0.expected)]
     InvalidCrc(Expectations),
+    #[error("error: invalid PNG file signature")]
+    InvalidPngSignature,
 }

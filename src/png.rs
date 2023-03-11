@@ -1,4 +1,7 @@
-use crate::{chunk::Chunk, errors::PngError};
+use crate::{
+    chunk::Chunk,
+    errors::{self, Expectations, PngError},
+};
 
 /// A PNG file.
 ///
@@ -35,6 +38,9 @@ impl TryFrom<&[u8]> for Png {
     fn try_from(value: &[u8]) -> Result<Self, Self::Error> {
         // First take the signature.
         let signature: [u8; 8] = value[..8].try_into()?;
+        if !signature.eq(&Self::PNG_FILE_SIGNATURE) {
+            return Err(Self::Error::InvalidPngSignature);
+        }
         // The chunks start from the 8th byte of `value` after
         // taking into account the signature.
         let mut starting_cursor = 8;
@@ -121,5 +127,23 @@ mod pngtests {
 
         let png = Png::try_from(bytes.as_ref());
         assert!(png.is_ok());
+    }
+
+    #[test]
+    fn test_invalid_signature() {
+        let chunk_bytes: Vec<u8> = get_testing_chunks()
+            .into_iter()
+            .flat_map(|chunk| chunk.as_bytes())
+            .collect();
+
+        let bytes: Vec<u8> = [130, 90, 78, 71, 13, 10, 26, 10]
+            .iter()
+            .chain(chunk_bytes.iter())
+            .copied()
+            .collect();
+
+        let png = Png::try_from(bytes.as_ref());
+        assert!(png.is_err());
+        assert!(matches!(png, Err(PngError::InvalidPngSignature)));
     }
 }
