@@ -31,6 +31,11 @@ impl Png {
     pub(crate) fn chunks(&self) -> &[Chunk] {
         &self.chunks
     }
+
+    /// Returns the PNG file signature as a slice of eight bytes.
+    pub(crate) fn signature(&self) -> &[u8; 8] {
+        &self.signature
+    }
 }
 
 impl TryFrom<&[u8]> for Png {
@@ -145,5 +150,11 @@ mod pngtests {
         let png = Png::try_from(bytes.as_ref());
         assert!(png.is_err());
         assert!(matches!(png, Err(PngError::InvalidPngSignature)));
+    }
+
+    #[test]
+    fn test_get_header_from_png() {
+        let png = Png::from_chunks(get_testing_chunks());
+        assert!(png.signature().eq(&Png::PNG_FILE_SIGNATURE));
     }
 }
