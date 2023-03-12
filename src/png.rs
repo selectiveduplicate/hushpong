@@ -36,6 +36,14 @@ impl Png {
     pub(crate) fn signature(&self) -> &[u8; 8] {
         &self.signature
     }
+
+    /// Searches for a chunk inside the PNG. 
+    /// 
+    /// It looks for the string-type representation of the chunk's `ChunkType`. 
+    /// Returns a reference to the first `Chunk` it finds inside the PNG.
+    pub(crate) fn search_chunk(&self, chunk_type: &str) -> Option<&Chunk> {
+        self.chunks().iter().find(|chunk| chunk.chunk_type().to_string().eq(chunk_type))
+    }
 }
 
 impl TryFrom<&[u8]> for Png {
@@ -156,5 +164,20 @@ mod pngtests {
     fn test_get_header_from_png() {
         let png = Png::from_chunks(get_testing_chunks());
         assert!(png.signature().eq(&Png::PNG_FILE_SIGNATURE));
+    }
+
+    #[test]
+    fn test_search_chunk_exists() {
+        let png = Png::from_chunks(get_testing_chunks());
+        let chunk = png.search_chunk("TeAr").unwrap();
+        assert_eq!(chunk.chunk_type().to_string(), "TeAr");
+        assert_eq!(chunk.data_as_string().unwrap(), "Yes I'm crying");
+    }
+    
+    #[test]
+    fn test_search_chunk_not_found() {
+        let png = Png::from_chunks(get_testing_chunks());
+        let chunk = png.search_chunk("CuTe");
+        assert!(chunk.is_none());
     }
 }
