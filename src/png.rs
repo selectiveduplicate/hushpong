@@ -44,6 +44,11 @@ impl Png {
     pub(crate) fn search_chunk(&self, chunk_type: &str) -> Option<&Chunk> {
         self.chunks().iter().find(|chunk| chunk.chunk_type().to_string().eq(chunk_type))
     }
+
+    /// Appends a new chunk to the PNG.
+    pub(crate) fn append_chunk(&mut self, chunk: Chunk) {
+        self.chunks.push(chunk);
+    }
 }
 
 impl TryFrom<&[u8]> for Png {
@@ -179,5 +184,15 @@ mod pngtests {
         let png = Png::from_chunks(get_testing_chunks());
         let chunk = png.search_chunk("CuTe");
         assert!(chunk.is_none());
+    }
+
+    #[test]
+    fn test_append_chunk() {
+        let mut png = Png::from_chunks(get_testing_chunks());
+        png.append_chunk(get_chunk_from_strings("CuTe", "You are cute!").unwrap());
+        let chunk = png.search_chunk("CuTe");
+        assert!(chunk.is_some());
+        assert_eq!(chunk.unwrap().chunk_type().to_string(), "CuTe");
+        assert_eq!(chunk.unwrap().data_as_string().unwrap(), "You are cute!");
     }
 }
