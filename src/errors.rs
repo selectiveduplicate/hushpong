@@ -26,4 +26,6 @@ pub(crate) enum PngError {
     InvalidCrc(Expectations),
     #[error("error: invalid PNG file signature")]
     InvalidPngSignature,
+    #[error("error: chunk not found")]
+    ChunkNotFound,
 }

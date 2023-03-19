@@ -37,17 +37,31 @@ impl Png {
         &self.signature
     }
 
-    /// Searches for a chunk inside the PNG. 
-    /// 
-    /// It looks for the string-type representation of the chunk's `ChunkType`. 
+    /// Searches for a chunk inside the PNG.
+    ///
+    /// It looks for the string-type representation of the chunk's `ChunkType`.
     /// Returns a reference to the first `Chunk` it finds inside the PNG.
-    pub(crate) fn search_chunk(&self, chunk_type: &str) -> Option<&Chunk> {
-        self.chunks().iter().find(|chunk| chunk.chunk_type().to_string().eq(chunk_type))
+    pub(crate) fn search_chunk(&self, chunk_type: &str) -> Option<(usize, &Chunk)> {
+        self.chunks()
+            .iter()
+            .enumerate()
+            .find(|(_, chunk)| chunk.chunk_type().to_string().eq(chunk_type))
     }
 
     /// Appends a new chunk to the PNG.
     pub(crate) fn append_chunk(&mut self, chunk: Chunk) {
         self.chunks.push(chunk);
+    }
+
+    /// Removes a chunk from the PNG.
+    pub(crate) fn remove_chunk(&mut self, chunk_type: &str) -> Result<Chunk, PngError> {
+        let query = self.search_chunk(chunk_type);
+        if query.is_none() {
+            return Err(errors::PngError::ChunkNotFound);
+        }
+        let (index, _) = query.unwrap();
+        let removed_chunk = self.chunks.remove(index);
+        Ok(removed_chunk)
     }
 }
 
@@ -172,27 +186,53 @@ mod pngtests {
     }
 
     #[test]
-    fn test_search_chunk_exists() {
+    fn test_search_chunk_some() {
         let png = Png::from_chunks(get_testing_chunks());
-        let chunk = png.search_chunk("TeAr").unwrap();
+        let (_, chunk) = png.search_chunk("TeAr").unwrap();
         assert_eq!(chunk.chunk_type().to_string(), "TeAr");
         assert_eq!(chunk.data_as_string().unwrap(), "Yes I'm crying");
     }
-    
+
     #[test]
-    fn test_search_chunk_not_found() {
+    fn test_search_chunk_none() {
         let png = Png::from_chunks(get_testing_chunks());
         let chunk = png.search_chunk("CuTe");
         assert!(chunk.is_none());
     }
 
     #[test]
-    fn test_append_chunk() {
+    fn test_append_chunk_some() {
         let mut png = Png::from_chunks(get_testing_chunks());
         png.append_chunk(get_chunk_from_strings("CuTe", "You are cute!").unwrap());
-        let chunk = png.search_chunk("CuTe");
-        assert!(chunk.is_some());
-        assert_eq!(chunk.unwrap().chunk_type().to_string(), "CuTe");
-        assert_eq!(chunk.unwrap().data_as_string().unwrap(), "You are cute!");
+        let query = png.search_chunk("CuTe");
+        assert!(query.is_some());
+        let (_, chunk) = query.unwrap();
+        assert_eq!(chunk.chunk_type().to_string(), "CuTe");
+        assert_eq!(chunk.data_as_string().unwrap(), "You are cute!");
+    }
+
+    #[test]
+    fn test_remove_chunk_ok() {
+        let mut png = Png::from_chunks(get_testing_chunks());
+        png.append_chunk(get_chunk_from_strings("CuTe", "You are cute!").unwrap());
+        let query = png.search_chunk("RuSt");
+        assert!(query.is_some());
+
+        // Remove
+        let removed = png.remove_chunk("RuSt");
+        assert!(removed.is_ok());
+        assert_eq!(removed.as_ref().unwrap().chunk_type().to_string(), "RuSt");
+        assert!(png
+            .search_chunk(&removed.unwrap().chunk_type().to_string())
+            .is_none());
+    }
+    
+    #[test]
+    fn test_remove_chunk_err() {
+        let mut png = Png::from_chunks(get_testing_chunks());
+        // Remove
+        let removed = png.remove_chunk("CuTe");
+        assert!(removed.is_err());
+        assert!(matches!(removed, Err(PngError::ChunkNotFound)));
     }
 }
