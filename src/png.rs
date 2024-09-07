@@ -226,7 +226,7 @@ mod pngtests {
             .search_chunk(&removed.unwrap().chunk_type().to_string())
             .is_none());
     }
-    
+
     #[test]
     fn test_remove_chunk_err() {
         let mut png = Png::from_chunks(get_testing_chunks());

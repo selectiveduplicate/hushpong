@@ -1,7 +1,8 @@
 use std::io::{BufReader, Read};
 
 use crate::{chunk_type::ChunkType, errors::Expectations};
-use crc::CRC_32_ISO_HDLC;
+
+use crate::crc32::calculate_crc;
 
 use crate::errors::PngError;
 
@@ -33,8 +34,7 @@ impl Chunk {
     /// Creates a new Chunk with the specified chunk type
     /// and chunk data.
     pub(crate) fn new(chunk_type: ChunkType, data: Vec<u8>) -> Self {
-        let crc = crc::Crc::<u32>::new(&CRC_32_ISO_HDLC)
-            .checksum(&[chunk_type.bytes().as_slice(), data.as_slice()].concat());
+        let crc = calculate_crc(&chunk_type, &data);
 
         Self {
             length: data.len() as u32,
@@ -110,8 +110,7 @@ impl TryFrom<&[u8]> for Chunk {
         reader.read_exact(&mut buffer)?;
         let received_crc = u32::from_be_bytes(buffer);
 
-        let actual_crc = crc::Crc::<u32>::new(&CRC_32_ISO_HDLC)
-            .checksum(&[chunk_type.bytes().as_slice(), chunk_data.as_slice()].concat());
+        let actual_crc = calculate_crc(&chunk_type, &chunk_data);
 
         (received_crc == actual_crc)
             .then_some(Self::new(chunk_type, chunk_data))
